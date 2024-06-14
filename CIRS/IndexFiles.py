@@ -38,28 +38,39 @@ def create_tf_idf_ext_lib(plots: list):
 def create_tf_idf(plots: list):
     print("Starting TF-IDF computation...")
     plots_count = len(plots)  # Total number of plots in collection
-    word_plots_dic = {}
     idf_dic = {}
+    tf_idf = {}
+    alphas = {}
 
     for plot_idx in range(plots_count):
         for word in plots[plot_idx].split():
-            if word not in word_plots_dic:
-                word_plots_dic[word] = {plot_idx: 0}
+            if word not in tf_idf:
+                tf_idf[word] = {plot_idx: 0}
 
-            if plot_idx not in word_plots_dic[word]:
-                word_plots_dic[word][plot_idx] = 0
+            if plot_idx not in tf_idf[word]:
+                tf_idf[word][plot_idx] = 0
 
-            word_plots_dic[word][plot_idx] += 1
+            tf_idf[word][plot_idx] += 1
 
         if plot_idx % 5000 == 0 and plot_idx > 0:
             print(f"Processed {plot_idx} plots")
     print("Finished TF computation...")
 
-    for word in word_plots_dic:
-        idf_dic[word] = math.log((1+plots_count)/(1+len(word_plots_dic[word])))
-        for tf in word_plots_dic[word]:
-            word_plots_dic[word][tf] *= idf_dic[word]
+    for word in tf_idf:
+        idf_dic[word] = math.log((1+plots_count)/(1+len(tf_idf[word])))
+        for plot_idx in tf_idf[word]:
+            tf_idf[word][plot_idx] *= idf_dic[word]
     print("Finished TF-IDF computation...")
+
+    for word in tf_idf:
+        for plot_idx, tf_value in tf_idf[word].items():
+            if plot_idx not in alphas:
+                alphas[plot_idx] = 0.
+            alphas[plot_idx] += math.pow(tf_value, 2)
+    for plot_idx, tf_value in alphas.items():
+        alphas[plot_idx] = math.sqrt(tf_value)
+    alphas = dict(sorted(alphas.items(), key=lambda item: item[0]))
+    print("Finished alphas computation...")
 
     # Write to CSV
     print("Outputting IDF table...")
@@ -71,11 +82,17 @@ def create_tf_idf(plots: list):
     print("Outputting TF-IDF table...")
     with open(OUT_DIR + '/tf_idf.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
-        for word, plot_idx in word_plots_dic.items():
+        for word, plot_idx in tf_idf.items():
             row = [word]
             for idx, occurrences in plot_idx.items():
                 row += [str(idx)] + [str(round(occurrences, 4))]
             writer.writerow(row)
+
+    print("Outputting alphas table...")
+    with open(OUT_DIR + '/alphas.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        for plot_idx, tf_value in alphas.items():
+            writer.writerow([plot_idx] + [str(round(tf_value, 4))])
 
 
 #
