@@ -2,7 +2,7 @@ import time
 import tkinter as tk
 from tkinter import ttk, messagebox, Text, END
 from PIL import Image, ImageTk
-from SearchFiles import search_plots, tfidf_vectorizer, tfidf_matrix, df_movies
+from SearchFiles import search_plots, tfidf_vectorizer, tfidf_matrix
 
 # GUI Event handler for SEARCH BUTTON widget
 def on_search():
@@ -73,7 +73,7 @@ root.grid_columnconfigure(1, weight=1)
 root.grid_columnconfigure(2, weight=1)
 root.grid_columnconfigure(3, weight=1)
 
-# GOOGLE PICTURE
+# CIRS PICTURE
 image = Image.open("CIRS.png").resize((100, 100))
 photo = ImageTk.PhotoImage(image)
 
