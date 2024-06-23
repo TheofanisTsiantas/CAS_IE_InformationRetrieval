@@ -92,12 +92,14 @@ def create_tf_idf(plots: list):
     # Write to CSVs
     # CSV output for IDF table
     print("Outputting IDF table...")
+    # add encoding='utf-8' as param if using Windows system
     with open(OUT_DIR + '/idf.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
         for word, value in idf_dic.items():
             writer.writerow([word] + [str(round(value, 4))])
     # CSV output for TF-IDF table
     print("Outputting TF-IDF table...")
+    # add encoding='utf-8' as param if using Windows system
     with open(OUT_DIR + '/tf_idf.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
         for word, plot_idx in tf_idf.items():
@@ -107,6 +109,7 @@ def create_tf_idf(plots: list):
             writer.writerow(row)
     # CSV output for alphas table
     print("Outputting alphas table...")
+    # add encoding='utf-8' as param if using Windows system
     with open(OUT_DIR + '/alphas.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
         for plot_idx, tf_value in alphas.items():
