@@ -92,6 +92,7 @@ if __name__ == '__main__':
         else:
             # Read the IDF csv file to a dictionary
             print("Reading IDF data...")
+            # add encoding='utf-8' as param if using Windows system
             with open(FILE_IDF, mode='r') as file:
                 csv_reader = csv.reader(file)
                 idf_dic = {}
@@ -99,6 +100,7 @@ if __name__ == '__main__':
                     idf_dic[data[0]] = data[1]
             # Read the IDF csv file to a dictionary
             print("Reading TF-IDF data...")
+            # add encoding='utf-8' as param if using Windows system
             with open(FILE_TF_IDF, mode='r') as file:
                 csv_reader = csv.reader(file)
                 tf_idf_dic = {}
@@ -108,6 +110,7 @@ if __name__ == '__main__':
                         tf_idf_dic[data[0]][data[data_idx]] = [data[data_idx + 1]]
             # Read the alphas csv file to a dictionary
             print("Reading alphas data...")
+            # add encoding='utf-8' as param if using Windows system
             with open(FILE_ALPHAS, mode='r') as file:
                 csv_reader = csv.reader(file)
                 alphas = {}
