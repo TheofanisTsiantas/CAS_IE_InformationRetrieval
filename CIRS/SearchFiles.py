@@ -33,14 +33,14 @@ with open(FILE1_EXT_LIB, 'rb') as f:
 with open(FILE2_EXT_LIB, 'rb') as f:
     tfidf_vectorizer = pickle.load(f)
 
-#
+# Read the movie plots to a Pandas dataframe
 df_movies = pd.read_csv(IN_DIR+"/Movie_Plots.csv")
 
 # Load SpaCy model
 nlp = spacy.load('en_core_web_sm')
 
 
-# Preprocessing function
+# Preprocessing function for the case of external library use
 def preprocess_text_english(text):
     doc = nlp(text)
     tokens = [token.lemma_ for token in doc if token.is_alpha]
@@ -50,7 +50,7 @@ def preprocess_text_english(text):
     return preprocessed_text
 
 
-# Search function
+# Search function for the case of external library use
 def search_plots(qr, tfidf_vector, tfidf_mat):
     query_processed = preprocess_text_english(qr)
     query_vector = tfidf_vector.transform([query_processed])
@@ -61,14 +61,17 @@ def search_plots(qr, tfidf_vector, tfidf_mat):
     return sorted_tit, sorted_plt, similarities[sorted_indices]
 
 
-#
+# Starting application point
 if __name__ == '__main__':
 
+    # Flag to select the functionality. True --> use nltk indexed files
     if use_external_libraries:
+        # Read the indexed tables
         print("Information retrieval using external libraries!")
         if not os.path.isfile(FILE1_EXT_LIB) or not os.path.isfile(FILE2_EXT_LIB):
             print("Necessary files not found. Make sure to run the indexing first!")
         else:
+            # Loop to search for movies until the user enters 'e'
             while True:
                 # Get user input for the search query
                 query = input("Enter your search query or hit 'e' to exit: ")
@@ -85,7 +88,8 @@ if __name__ == '__main__':
                     print(f"Title: {title}, Similarity: {similarity:.4f}")
                     print(f"Plot: {plot}")
                     print("------")
-    else:
+    else:  # Use custom indexed files
+        # Read the indexed tables
         print("Information retrieval using custom code!")
         if not os.path.isfile(FILE_IDF) or not os.path.isfile(FILE_TF_IDF) or not os.path.isfile(FILE_ALPHAS):
             print("Necessary files not found. Make sure to run the indexing first!")
@@ -117,30 +121,38 @@ if __name__ == '__main__':
                 for data in csv_reader:
                     alphas[data[0]] = data[1]
 
+            # Loop to search for movies until the user enters 'e'
             while True:
                 # Get user input for the search query
                 query = input("Enter your search query or hit 'e' to exit: ")
                 if query == 'e':
                     exit(0)
+                # Define a list with only one entry - the query
                 cleansed_query = [query]
+                # Clean the query from unnecessary words
                 eliminate_stopwords(cleansed_query)
-                #
+                # Define a list with all the necessary words in the query
                 cleansed_query = cleansed_query[0].split()
+                # The features which will be used for the RSV are the common
+                # words in the query and the plots
                 features = set()
                 for word in cleansed_query:
                     if word in idf_dic:
                         features.add(word)
 
-                #
+                # Only the documents which contain at least one of the query words
+                # will be used in the search
                 relevant_documents = set()
                 for feature in features:
                     for doc in tf_idf_dic[feature]:
                         relevant_documents.add(doc)
 
-                RSV_dic = {}
+                RSV_dic = {}  # key = plot, value = RSV
                 for doc in relevant_documents:
+                    # Initialization of document dependent values
                     alpha_beta = 0
                     norm_b = 0
+                    # Calculate alpha, beta for the document
                     for feature in features:
                         beta = cleansed_query.count(feature)*float(idf_dic[feature])
                         if doc in tf_idf_dic[feature]:
@@ -149,13 +161,17 @@ if __name__ == '__main__':
                             alpha = 0.
                         alpha_beta += beta*alpha
                         norm_b += math.pow(beta,  2)
+                    # Norm of alpha(i,j)
                     alpha = float(alphas[doc])
+                    # RSV value
                     RSV_dic[doc] = alpha_beta/(math.sqrt(norm_b) * alpha)
 
-                #
+                # Sort the dictionary w.r.t. the RSV value
                 RSV_dic = dict(sorted(RSV_dic.items(), key=lambda item: item[1], reverse=True))
+                # Trim the dictionary to retain only N_PLOTS
                 RSV_dic = dict(list(RSV_dic.items())[:N_PLOTS])
 
+                # Output results
                 for plot_idx, score in RSV_dic.items():
                     idx = int(plot_idx)
                     title = df_movies['Title'].loc[idx]
